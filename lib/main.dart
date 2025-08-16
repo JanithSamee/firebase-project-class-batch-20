@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:first_app/screens/UserScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -53,9 +54,19 @@ class _MyAppState extends State<MyApp> {
                         password: password,
                       );
 
-                  Get.snackbar("Success", "$credential");
+                  Get.snackbar(
+                    "Success",
+                    "Success",
+                    backgroundColor: Colors.lightGreen,
+                  );
+                  Get.to(() => UserScreen());
                   print(credential);
                 } catch (e) {
+                  Get.snackbar(
+                    "Error",
+                    "${e.toString()}",
+                    backgroundColor: Colors.redAccent,
+                  );
                   print(e);
                 }
               },
