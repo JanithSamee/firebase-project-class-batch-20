@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:first_app/screens/UserScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -11,69 +9,84 @@ void main() async {
   runApp(GetMaterialApp(home: Scaffold(appBar: AppBar(), body: MyApp())));
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  String username = "";
-  String password = "";
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          spacing: 15,
-          children: [
-            Text("Login"),
-            TextField(
-              onChanged:
-                  (value) => setState(() {
-                    username = value;
-                  }),
-              decoration: InputDecoration(labelText: "Username"),
-            ),
-            TextField(
-              onChanged:
-                  (value) => setState(() {
-                    password = value;
-                  }),
-              decoration: InputDecoration(labelText: "Password"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final credential = await FirebaseAuth.instance
-                      .signInWithEmailAndPassword(
-                        email: username,
-                        password: password,
-                      );
+      child: Column(
+        children: [
+          TextButton(
+            onPressed: () {
+              Get.bottomSheet(
+                Container(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Add Task",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: "Enter task",
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.back();
+                        },
+                        child: Text("Add"),
+                      ),
+                    ],
+                  ),
+                ),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+              );
+            },
+            child: Text("Add Task"),
+          ),
 
-                  Get.snackbar(
-                    "Success",
-                    "Success",
-                    backgroundColor: Colors.lightGreen,
-                  );
-                  Get.to(() => UserScreen());
-                  print(credential);
-                } catch (e) {
-                  Get.snackbar(
-                    "Error",
-                    "${e.toString()}",
-                    backgroundColor: Colors.redAccent,
-                  );
-                  print(e);
-                }
+          Expanded(
+            child: ListView.builder(
+              itemCount: 5,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: ListTile(
+                    leading: Checkbox(
+                      value: false, // Replace with your task completion status
+                      onChanged: (value) {
+                        // Handle checkbox change
+                      },
+                    ),
+                    title: Text(
+                      'Task ${index + 1}',
+                    ), // Replace with actual task title
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        // Handle task deletion
+                      },
+                    ),
+                  ),
+                );
               },
-              child: Text("Submit"),
             ),
-          ],
-        ),
+          ),
+         
+        ],
       ),
     );
   }
