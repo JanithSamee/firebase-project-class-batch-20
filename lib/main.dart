@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -9,8 +10,49 @@ void main() async {
   runApp(GetMaterialApp(home: Scaffold(appBar: AppBar(), body: MyApp())));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  List<dynamic> taskList = [];
+
+  late FirebaseFirestore db;
+
+  String taskInput = "";
+
+  @override
+  void initState() {
+    super.initState();
+    db = FirebaseFirestore.instance;
+
+    db.collection("test").get().then((event) {
+      for (var doc in event.docs) {
+        var data = doc.data();
+        setState(() {
+          taskList.add({
+            "done": data["done"],
+            "task": data["task"],
+            "id": doc.id,
+          });
+        });
+      }
+    });
+  }
+
+  Future<void> addData() async {
+    db
+        .collection("test")
+        .add({"done": false, "task": taskInput})
+        .then(
+          (DocumentReference doc) => setState(() {
+            taskList.add({"done": false, "task": taskInput, "id": doc.id});
+          }),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +76,10 @@ class MyApp extends StatelessWidget {
                       ),
                       SizedBox(height: 16),
                       TextField(
+                        onChanged:
+                            (value) => setState(() {
+                              taskInput = value;
+                            }),
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                           hintText: "Enter task",
@@ -42,6 +88,7 @@ class MyApp extends StatelessWidget {
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
+                          addData();
                           Get.back();
                         },
                         child: Text("Add"),
@@ -60,24 +107,43 @@ class MyApp extends StatelessWidget {
 
           Expanded(
             child: ListView.builder(
-              itemCount: 5,
+              itemCount: taskList.length,
               itemBuilder: (context, index) {
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ListTile(
                     leading: Checkbox(
-                      value: false, // Replace with your task completion status
+                      value:
+                          taskList[index]["done"], // Replace with your task completion status
                       onChanged: (value) {
                         // Handle checkbox change
                       },
                     ),
                     title: Text(
-                      'Task ${index + 1}',
+                      taskList[index]["task"],
                     ), // Replace with actual task title
                     trailing: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        // Handle task deletion
+                        db
+                            .collection("test")
+                            .doc(taskList[index]["id"])
+                            .delete()
+                            .then(
+                              (doc) {
+                                Get.snackbar("Success", "Deleted ");
+                                setState(() {
+                                  taskList.removeWhere(
+                                    (item) => item.id == taskList[index]["id"],
+                                  );
+                                });
+                              },
+                              onError:
+                                  (e) => Get.snackbar(
+                                    "error",
+                                    "Error updating document $e",
+                                  ),
+                            );
                       },
                     ),
                   ),
@@ -85,7 +151,6 @@ class MyApp extends StatelessWidget {
               },
             ),
           ),
-         
         ],
       ),
     );
